@@ -1,55 +1,42 @@
-import streamlit as st 
-from langchain.chat_models import ChatOpenAI
-from langchain.document_loaders import PyPDFLoader
-from langchain.memory import ConversationBufferMemory
-from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.callbacks.base import BaseCallbackHandler
-from langchain.chains import ConversationalRetrievalChain
-from langchain.vectorstores import DocArrayInMemorySearch
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+import streamlit as st
+import random
+import time
 
-# Customize the layout
-st.set_page_config(page_title="DOCAI", page_icon="🤖", layout="wide", )     
-st.markdown(f"""
-            <style>
-            .stApp {{background-image: url("https://images.unsplash.com/photo-1509537257950-20f875b03669?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1469&q=80"); 
-                     background-attachment: fixed;
-                     background-size: cover}}
-         </style>
-         """, unsafe_allow_html=True)
+st.title("Simple chat")
 
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
+# Display chat messages from history on app rerun
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-st.title("📄 Document Conversation 🤖")
-uploaded_files = st.sidebar.file_uploader(
-    label="Upload PDF files", type=["pdf"], accept_multiple_files=True
-)
+# Accept user input
+if prompt := st.chat_input("What is up?"):
+    # Display user message in chat message container
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": prompt})
 
 
-msgs = StreamlitChatMessageHistory()
-memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=msgs, return_messages=True)
+# Streamed response emulator
+def response_generator():
+    response = random.choice(
+        [
+            "Hello there! How can I assist you today?",
+            "Hi, human! Is there anything I can help you with?",
+            "Do you need help?",
+        ]
+    )
+    for word in response.split():
+        yield word + " "
+        time.sleep(0.05)
 
-
-if len(msgs.messages) == 0 or st.sidebar.button("Clear message history"):
-    msgs.clear()
-    msgs.add_ai_message("How can I help you?")
-
-
-avatars = {"human": "user", "ai": "assistant"}
-for msg in msgs.messages:
-    st.chat_message(avatars[msg.type]).write(msg.content)
-
-
-if user_query := st.chat_input(placeholder="Ask me anything!"):
-    st.chat_message("user").write(user_query)
-    st.chat_message("assistant").write("sure")
-    st.chat_message("user").write("or is it")
-
+# Display assistant response in chat message container
 with st.chat_message("assistant"):
-    placeholder = st.empty()
-    full_response = ''
-    for i in range(10)::
-        full_response += str(i)
-        placeholder.markdown(full_response)
-    placeholder.markdown(full_response)
+    response = st.write_stream(response_generator())
+# Add assistant response to chat history
+st.session_state.messages.append({"role": "assistant", "content": response})
