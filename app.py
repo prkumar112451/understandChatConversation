@@ -43,7 +43,13 @@ for msg in msgs.messages:
 
 if user_query := st.chat_input(placeholder="Ask me anything!"):
     st.chat_message("user").write(user_query)
+    st.chat_message("assistant").write("sure")
+    st.chat_message("user").write("or is it")
 
-    with st.chat_message("assistant"):
-            st.chat_message("assistant").write("sure")
- 
+with st.chat_message("assistant):
+    placeholder = st.empty()
+    full_response = ''
+    for i in range(10)::
+        full_response += str(i)
+        placeholder.markdown(full_response)
+    placeholder.markdown(full_response)
