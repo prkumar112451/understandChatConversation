@@ -46,7 +46,7 @@ if user_query := st.chat_input(placeholder="Ask me anything!"):
     st.chat_message("assistant").write("sure")
     st.chat_message("user").write("or is it")
 
-with st.chat_message("assistant):
+with st.chat_message("assistant"):
     placeholder = st.empty()
     full_response = ''
     for i in range(10)::
